@@ -95,7 +95,7 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-                    {/* SOLID OVERLAY, NO BLUR */}
+                    {/* SOLID OVERLAY */}
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#000000] bg-opacity-95" onClick={onClose} />
                     <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-sm rounded-3xl p-6 bg-[#121212] text-white border border-white/10 shadow-2xl">
                         <div className="flex flex-col items-center text-center gap-4">
@@ -141,7 +141,14 @@ const NoteCard = ({
     target.style.height = 'auto'; target.style.height = target.scrollHeight + 'px';
     setNoteState({ ...noteState, content: target.value });
   };
-  useEffect(() => { if (isSelected && textAreaRef.current) { textAreaRef.current.style.height = 'auto'; textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 'px'; } }, [isSelected]);
+  
+  // Resize logic moved to layout effect to prevent flicker
+  React.useLayoutEffect(() => {
+    if (isSelected && textAreaRef.current) { 
+        textAreaRef.current.style.height = 'auto'; 
+        textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 'px'; 
+    }
+  }, [isSelected, noteState.content]);
 
   const handleTagToggle = (tag) => {
     const newTags = note.tags.includes(tag) ? note.tags.filter(t => t !== tag) : [...note.tags, tag];
@@ -154,7 +161,12 @@ const NoteCard = ({
   return (
     <motion.div
       ref={cardRef}
-      layout 
+      layout // Still needed for expand animation
+      // Disable layout animation for height changes when expanded to prevent jitter
+      // We can't selectively disable 'layout' per property in Framer easily, 
+      // but 'layoutRoot' on parent might help, or accepting the smooth height transition.
+      // The key fix for "jumping" is in the App scroll logic.
+      
       drag={!isSelected && !isSelectionMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragStart={cancelTimer}
@@ -162,7 +174,6 @@ const NoteCard = ({
       style={{ 
         x, opacity, backgroundColor: theme.surface, color: theme.text, 
         border: `1px solid ${isChecked ? theme.primary : (isSelected ? theme.primary + '40' : theme.border)}`, 
-        // NO SHADOW
         boxShadow: 'none', 
         zIndex: isSelected ? 30 : 0 
       }}
@@ -174,11 +185,7 @@ const NoteCard = ({
       onClick={isSelectionMode ? () => onToggleSelect(note.id) : (isSelected ? null : onClick)}
 
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ 
-          // SOLID VIEW: Opacity always 1
-          opacity: 1, 
-          scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) 
-      }}
+      animate={{ opacity: 1, scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) }}
       transition={{ layout: { duration: 0.35, type: "spring", stiffness: 250, damping: 25 } }}
       className={`relative rounded-3xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[40vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
     >
@@ -194,14 +201,7 @@ const NoteCard = ({
         {isSelected ? (
             <div className="w-full flex justify-between items-start">
                 <input className="font-bold text-2xl bg-transparent outline-none w-full pb-2 mr-2" style={{ color: theme.text, borderBottom: `1px solid ${theme.border}` }} value={noteState.title} onChange={(e) => setNoteState({ ...noteState, title: e.target.value })} placeholder="Judul..." />
-                
-                {/* CLOSE BUTTON - Calls onClose explicitly */}
-                <button 
-                  className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`} 
-                  onClick={(e) => { e.stopPropagation(); onClose(); }}
-                >
-                    <X size={20} />
-                </button>
+                <button className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`} onClick={(e) => { e.stopPropagation(); onClose(); }}><X size={20} /></button>
             </div>
         ) : (
             <h3 className={`font-bold text-lg leading-tight w-full break-words line-clamp-3 ${isSelectionMode ? 'pr-8' : ''}`}>{note.title || <span className="opacity-30 italic">Tanpa Judul</span>}</h3>
@@ -257,7 +257,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
     const fileInputRef = useRef(null);
     const handleAddTag = () => { if (newTag && !allTags.includes(newTag)) { setAllTags([...allTags, newTag]); setNewTag(''); } };
     const handleDeleteTag = (tagToDelete) => { setAllTags(allTags.filter(t => t !== tagToDelete)); };
-    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '16.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v16-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
+    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '17.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v17-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
     const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Restored!'); } } catch (err) { alert('Error.'); } }; reader.readAsText(file); };
   
     return (
@@ -281,7 +281,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
                 <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Kelola Label</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Buat label baru..." className={`flex-1 px-4 py-3 rounded-xl outline-none ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-sm font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={14} className="opacity-50" /></button></div>))}</div></div>
                 <div className={`flex items-center justify-between p-4 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium">AMOLED Mode</span></div><button onClick={toggleDark} className={`w-14 h-8 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-gray-300'}`}><motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: isDark ? 24 : 0 }} /></button></div>
               </div>
-              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Redemption-v16</div>
+              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-FixScroll-v17</div>
             </motion.div>
           </>
         )}
@@ -307,11 +307,10 @@ export default function App() {
 
   const isScrolled = useScroll();
   const noteRefs = useRef({});
+  const lastScrolledId = useRef(null); // GUARD: To prevent repeated scrolling
   const theme = useMemo(() => isDark ? THEMES[themeKey].dark : THEMES[themeKey].light, [themeKey, isDark]);
 
   // --- REFINED BACK BUTTON LOGIC (SAFE) ---
-  
-  // Use a ref to track current state for the event listener
   const stateRef = useRef({ selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode });
   
   useEffect(() => {
@@ -321,7 +320,6 @@ export default function App() {
   useEffect(() => {
     const handlePopState = (event) => {
         const current = stateRef.current;
-        // Priority Closing: Modal > Settings > Note > Selection
         if (current.deleteModalOpen) {
             setDeleteModal(prev => ({ ...prev, isOpen: false }));
         } else if (current.isSettingsOpen) {
@@ -333,44 +331,43 @@ export default function App() {
             setSelectedIds([]);
         }
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []); // Run once! Ref handles updates.
+  }, []);
 
   // --- NAVIGATION HELPERS ---
-  
-  const pushState = () => {
-      // Clean push state
-      window.history.pushState(null, ''); 
-  };
+  const pushState = () => { window.history.pushState(null, ''); };
+  const goBack = () => { window.history.back(); };
 
-  const goBack = () => {
-      window.history.back();
-  };
-
-  const openNote = (id) => {
-      pushState();
-      setSelectedId(id);
-  };
-
-  const openSettings = () => {
-      pushState();
-      setIsSettingsOpen(true);
-  };
-
+  const openNote = (id) => { pushState(); setSelectedId(id); };
+  const openSettings = () => { pushState(); setIsSettingsOpen(true); };
   const openDeleteModal = (ids) => {
      const skipConfirm = localStorage.getItem('dinduy_skip_delete_confirm') === 'true';
      if (skipConfirm) performDelete(ids);
-     else {
-         pushState();
-         setDeleteModal({ isOpen: true, count: ids.length, targetIds: ids });
-     }
+     else { pushState(); setDeleteModal({ isOpen: true, count: ids.length, targetIds: ids }); }
   };
 
+  // --- FIXED SCROLL LOGIC ---
   useEffect(() => {
-    if (selectedId && noteRefs.current[selectedId]) {
-      setTimeout(() => { noteRefs.current[selectedId].scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350);
+    // Only scroll if we have a new selection AND it's different from the last time we scrolled
+    if (selectedId && noteRefs.current[selectedId] && lastScrolledId.current !== selectedId) {
+      // Small delay to allow layout to settle
+      setTimeout(() => {
+        if (noteRefs.current[selectedId]) {
+            // FIX: SCROLL TO START (TOP), NOT CENTER.
+            // This prevents the "jumping up" issue when content grows downwards.
+            noteRefs.current[selectedId].scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start', // Align top of card to top of view
+                inline: 'nearest'
+            });
+            // We can also add a small manual adjustment if needed via window.scrollBy
+            // But block: 'start' is usually safest for long content.
+        }
+      }, 300);
+      lastScrolledId.current = selectedId; // Mark as scrolled
+    } else if (!selectedId) {
+        lastScrolledId.current = null; // Reset when closed
     }
   }, [selectedId]);
 
@@ -382,12 +379,12 @@ export default function App() {
           setIsSelectionMode(true);
           setSelectedIds([id]);
           if (navigator.vibrate) navigator.vibrate(50);
-          pushState(); // Add history for selection mode
+          pushState(); 
       } else {
           if (selectedIds.includes(id)) {
               const newIds = selectedIds.filter(sid => sid !== id);
               setSelectedIds(newIds);
-              if (newIds.length === 0) goBack(); // Closes selection mode via back
+              if (newIds.length === 0) goBack(); 
           } else {
               setSelectedIds([...selectedIds, id]);
           }
@@ -396,10 +393,7 @@ export default function App() {
 
   const performDelete = (ids) => {
       setNotes(prev => prev.filter(n => !ids.includes(n.id)));
-      if (deleteModal.isOpen) goBack(); // Close modal via back
-      // If we were in selection mode, we also need to exit it.
-      // Since modal was on top of selection, backing once closes modal.
-      // We manually clear selection state below.
+      if (deleteModal.isOpen) goBack(); 
       setIsSelectionMode(false);
       setSelectedIds([]);
       if (selectedId && ids.includes(selectedId)) setSelectedId(null);
@@ -428,27 +422,31 @@ export default function App() {
       {!selectedId && (<div className={`px-6 mb-6 overflow-x-auto no-scrollbar pb-2 transition-opacity duration-300 ${isScrolled ? 'opacity-50 hover:opacity-100' : 'opacity-100'}`}><div className="flex gap-2">{['All', ...allTags].map(tag => (<button key={tag} onClick={() => setActiveTag(tag)} className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors border`} style={{ backgroundColor: activeTag === tag ? theme.primary : 'transparent', color: activeTag === tag ? (isDark ? '#000' : '#FFF') : theme.text, borderColor: activeTag === tag ? 'transparent' : theme.border }}>{tag}</button>))}</div></div>)}
 
       <main className="px-4 max-w-2xl mx-auto">
+        {/* ADDED SCROLL-MARGIN-TOP TO LAYOUT GROUP CONTAINER OR ITEMS FOR SAFER SCROLL */}
         <LayoutGroup>
           <motion.div layout className="grid grid-cols-2 gap-3" style={{ alignItems: 'start' }}>
             <AnimatePresence mode='popLayout'>
                 {filteredNotes.map((note) => (
-                    <NoteCard
-                    key={note.id}
-                    cardRef={(el) => (noteRefs.current[note.id] = el)} 
-                    note={note}
-                    isSelected={selectedId === note.id}
-                    isAnySelected={selectedId !== null}
-                    onClick={() => openNote(note.id)}
-                    onUpdate={updateNote}
-                    theme={theme}
-                    isDark={isDark}
-                    availableTags={allTags}
-                    isSelectionMode={isSelectionMode}
-                    isChecked={selectedIds.includes(note.id)}
-                    onToggleSelect={handleToggleSelect}
-                    onDeleteSwipe={(id) => openDeleteModal([id])}
-                    onClose={goBack} 
-                    />
+                    // WRAPPER DIV for Scroll Margin (Keeps header visible)
+                    <div key={note.id} className={selectedId === note.id ? "col-span-2 scroll-mt-24" : "col-span-1"}> 
+                        <NoteCard
+                        // Note: cardRef needs to be on the motion div usually, passing it down
+                        cardRef={(el) => (noteRefs.current[note.id] = el)} 
+                        note={note}
+                        isSelected={selectedId === note.id}
+                        isAnySelected={selectedId !== null}
+                        onClick={() => openNote(note.id)}
+                        onUpdate={updateNote}
+                        theme={theme}
+                        isDark={isDark}
+                        availableTags={allTags}
+                        isSelectionMode={isSelectionMode}
+                        isChecked={selectedIds.includes(note.id)}
+                        onToggleSelect={handleToggleSelect}
+                        onDeleteSwipe={(id) => openDeleteModal([id])}
+                        onClose={goBack} 
+                        />
+                    </div>
                 ))}
             </AnimatePresence>
           </motion.div>
