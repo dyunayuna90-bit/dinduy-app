@@ -85,6 +85,7 @@ const useScroll = () => {
 
 const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
     const [dontAsk, setDontAsk] = useState(false);
+    
     const handleConfirm = () => {
         if (dontAsk) localStorage.setItem('dinduy_skip_delete_confirm', 'true');
         onConfirm(); 
@@ -136,19 +137,13 @@ const NoteCard = ({
 
   const handleInput = (e) => {
     const target = e.target;
-    // Auto Height Logic - No Framer Jitter
+    // PURE AUTO HEIGHT. NO SCROLL INTERFERENCE.
     target.style.height = 'auto'; 
     target.style.height = target.scrollHeight + 'px';
     setNoteState({ ...noteState, content: target.value });
-
-    // FIX: Cursor Following (Nudge window down if typing at bottom)
-    const { bottom } = target.getBoundingClientRect();
-    if (bottom > window.innerHeight - 50) { // 50px buffer
-        window.scrollBy({ top: 40, behavior: 'smooth' });
-    }
+    // DONT TOUCH SCROLL HERE! LET BROWSER HANDLE IT.
   };
   
-  // Resize Effect
   React.useLayoutEffect(() => {
     if (isSelected && textAreaRef.current) { 
         textAreaRef.current.style.height = 'auto'; 
@@ -167,7 +162,6 @@ const NoteCard = ({
   return (
     <motion.div
       ref={cardRef}
-      // ONLY layout animate on PARENT structure changes, not internal height
       layout={!isSelected} 
       
       drag={!isSelected && !isSelectionMode ? "x" : false}
@@ -188,10 +182,7 @@ const NoteCard = ({
       onClick={isSelectionMode ? () => onToggleSelect(note.id) : (isSelected ? null : onClick)}
 
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ 
-          opacity: 1, 
-          scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) 
-      }}
+      animate={{ opacity: 1, scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) }}
       transition={{ layout: { duration: 0.35, type: "spring", stiffness: 250, damping: 25 } }}
       className={`relative rounded-3xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[40vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
     >
@@ -268,7 +259,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
     const fileInputRef = useRef(null);
     const handleAddTag = () => { if (newTag && !allTags.includes(newTag)) { setAllTags([...allTags, newTag]); setNewTag(''); } };
     const handleDeleteTag = (tagToDelete) => { setAllTags(allTags.filter(t => t !== tagToDelete)); };
-    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '18.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v18-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
+    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '19.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v19-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
     const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Restored!'); } } catch (err) { alert('Error.'); } }; reader.readAsText(file); };
   
     return (
@@ -292,7 +283,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
                 <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Kelola Label</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Buat label baru..." className={`flex-1 px-4 py-3 rounded-xl outline-none ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-sm font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={14} className="opacity-50" /></button></div>))}</div></div>
                 <div className={`flex items-center justify-between p-4 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium">AMOLED Mode</span></div><button onClick={toggleDark} className={`w-14 h-8 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-gray-300'}`}><motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: isDark ? 24 : 0 }} /></button></div>
               </div>
-              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Stable-v18</div>
+              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-ZenScroll-v19</div>
             </motion.div>
           </>
         )}
@@ -318,36 +309,26 @@ export default function App() {
 
   const isScrolled = useScroll();
   const noteRefs = useRef({});
-  const lastScrolledId = useRef(null); // GUARD: To prevent scroll jump
+  const lastScrolledId = useRef(null); // GUARD
   const theme = useMemo(() => isDark ? THEMES[themeKey].dark : THEMES[themeKey].light, [themeKey, isDark]);
 
   const stateRef = useRef({ selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode });
-  
-  useEffect(() => {
-      stateRef.current = { selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode };
-  }, [selectedId, isSettingsOpen, deleteModal.isOpen, isSelectionMode]);
+  useEffect(() => { stateRef.current = { selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode }; }, [selectedId, isSettingsOpen, deleteModal.isOpen, isSelectionMode]);
 
   useEffect(() => {
-    const handlePopState = (event) => {
+    const handlePopState = () => {
         const current = stateRef.current;
-        if (current.deleteModalOpen) {
-            setDeleteModal(prev => ({ ...prev, isOpen: false }));
-        } else if (current.isSettingsOpen) {
-            setIsSettingsOpen(false);
-        } else if (current.selectedId) {
-            setSelectedId(null);
-        } else if (current.isSelectionMode) {
-            setIsSelectionMode(false);
-            setSelectedIds([]);
-        }
+        if (current.deleteModalOpen) setDeleteModal(prev => ({ ...prev, isOpen: false }));
+        else if (current.isSettingsOpen) setIsSettingsOpen(false);
+        else if (current.selectedId) setSelectedId(null);
+        else if (current.isSelectionMode) { setIsSelectionMode(false); setSelectedIds([]); }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const pushState = () => { window.history.pushState(null, ''); };
-  const goBack = () => { window.history.back(); };
-
+  const pushState = () => window.history.pushState(null, '');
+  const goBack = () => window.history.back();
   const openNote = (id) => { pushState(); setSelectedId(id); };
   const openSettings = () => { pushState(); setIsSettingsOpen(true); };
   const openDeleteModal = (ids) => {
@@ -356,24 +337,30 @@ export default function App() {
      else { pushState(); setDeleteModal({ isOpen: true, count: ids.length, targetIds: ids }); }
   };
 
-  // --- FIXED SCROLL LOGIC ---
+  // --- FIXED SCROLL LOGIC: PRECISE POSITIONING ---
   useEffect(() => {
-    // Only scroll if a note is selected AND it's a NEW selection
+    // Only scroll if NEW SELECTION
     if (selectedId && lastScrolledId.current !== selectedId) {
+      // Small timeout to allow Framer Motion layout to settle
       setTimeout(() => {
-        if (noteRefs.current[selectedId]) {
-            noteRefs.current[selectedId].scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start', // ALIGN TO TOP
-                inline: 'nearest'
+        const el = noteRefs.current[selectedId];
+        if (el) {
+            // MANUAL SCROLL CALCULATION FOR PERFECT HEADER OFFSET
+            const headerHeight = 100; // Approximation of header height + padding
+            const elementPosition = el.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
             });
         }
-      }, 400); // Wait for transition
+      }, 400); 
       lastScrolledId.current = selectedId;
     } else if (!selectedId) {
         lastScrolledId.current = null;
     }
-  }, [selectedId]); // Deps: Only selectedId
+  }, [selectedId]);
 
   const updateNote = (id, updates) => setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
   const filteredNotes = notes.filter(n => (n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content.toLowerCase().includes(searchQuery.toLowerCase())) && (activeTag === 'All' || n.tags.some(t => t === activeTag && allTags.includes(t))));
@@ -430,8 +417,8 @@ export default function App() {
           <motion.div layout className="grid grid-cols-2 gap-3" style={{ alignItems: 'start' }}>
             <AnimatePresence mode='popLayout'>
                 {filteredNotes.map((note) => (
-                    // WRAPPER DIV for Scroll Margin
-                    <div key={note.id} className={selectedId === note.id ? "col-span-2 scroll-mt-32" : "col-span-1"}> 
+                    // CSS Scroll Scroll Margin for Safety
+                    <div key={note.id} className={selectedId === note.id ? "col-span-2 scroll-mt-28" : "col-span-1"}> 
                         <NoteCard
                         cardRef={(el) => (noteRefs.current[note.id] = el)} 
                         note={note}
