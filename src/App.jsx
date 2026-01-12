@@ -85,7 +85,6 @@ const useScroll = () => {
 
 const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
     const [dontAsk, setDontAsk] = useState(false);
-    
     const handleConfirm = () => {
         if (dontAsk) localStorage.setItem('dinduy_skip_delete_confirm', 'true');
         onConfirm(); 
@@ -95,7 +94,6 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-                    {/* SOLID OVERLAY */}
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#000000] bg-opacity-95" onClick={onClose} />
                     <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-sm rounded-3xl p-6 bg-[#121212] text-white border border-white/10 shadow-2xl">
                         <div className="flex flex-col items-center text-center gap-4">
@@ -138,17 +136,25 @@ const NoteCard = ({
 
   const handleInput = (e) => {
     const target = e.target;
-    target.style.height = 'auto'; target.style.height = target.scrollHeight + 'px';
+    // Auto Height Logic - No Framer Jitter
+    target.style.height = 'auto'; 
+    target.style.height = target.scrollHeight + 'px';
     setNoteState({ ...noteState, content: target.value });
+
+    // FIX: Cursor Following (Nudge window down if typing at bottom)
+    const { bottom } = target.getBoundingClientRect();
+    if (bottom > window.innerHeight - 50) { // 50px buffer
+        window.scrollBy({ top: 40, behavior: 'smooth' });
+    }
   };
   
-  // Resize logic moved to layout effect to prevent flicker
+  // Resize Effect
   React.useLayoutEffect(() => {
     if (isSelected && textAreaRef.current) { 
         textAreaRef.current.style.height = 'auto'; 
         textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 'px'; 
     }
-  }, [isSelected, noteState.content]);
+  }, [isSelected]);
 
   const handleTagToggle = (tag) => {
     const newTags = note.tags.includes(tag) ? note.tags.filter(t => t !== tag) : [...note.tags, tag];
@@ -161,11 +167,8 @@ const NoteCard = ({
   return (
     <motion.div
       ref={cardRef}
-      layout // Still needed for expand animation
-      // Disable layout animation for height changes when expanded to prevent jitter
-      // We can't selectively disable 'layout' per property in Framer easily, 
-      // but 'layoutRoot' on parent might help, or accepting the smooth height transition.
-      // The key fix for "jumping" is in the App scroll logic.
+      // ONLY layout animate on PARENT structure changes, not internal height
+      layout={!isSelected} 
       
       drag={!isSelected && !isSelectionMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -185,7 +188,10 @@ const NoteCard = ({
       onClick={isSelectionMode ? () => onToggleSelect(note.id) : (isSelected ? null : onClick)}
 
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) }}
+      animate={{ 
+          opacity: 1, 
+          scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) 
+      }}
       transition={{ layout: { duration: 0.35, type: "spring", stiffness: 250, damping: 25 } }}
       className={`relative rounded-3xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[40vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
     >
@@ -201,7 +207,12 @@ const NoteCard = ({
         {isSelected ? (
             <div className="w-full flex justify-between items-start">
                 <input className="font-bold text-2xl bg-transparent outline-none w-full pb-2 mr-2" style={{ color: theme.text, borderBottom: `1px solid ${theme.border}` }} value={noteState.title} onChange={(e) => setNoteState({ ...noteState, title: e.target.value })} placeholder="Judul..." />
-                <button className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`} onClick={(e) => { e.stopPropagation(); onClose(); }}><X size={20} /></button>
+                <button 
+                  className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`} 
+                  onClick={(e) => { e.stopPropagation(); onClose(); }}
+                >
+                    <X size={20} />
+                </button>
             </div>
         ) : (
             <h3 className={`font-bold text-lg leading-tight w-full break-words line-clamp-3 ${isSelectionMode ? 'pr-8' : ''}`}>{note.title || <span className="opacity-30 italic">Tanpa Judul</span>}</h3>
@@ -257,7 +268,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
     const fileInputRef = useRef(null);
     const handleAddTag = () => { if (newTag && !allTags.includes(newTag)) { setAllTags([...allTags, newTag]); setNewTag(''); } };
     const handleDeleteTag = (tagToDelete) => { setAllTags(allTags.filter(t => t !== tagToDelete)); };
-    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '17.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v17-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
+    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '18.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v18-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
     const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Restored!'); } } catch (err) { alert('Error.'); } }; reader.readAsText(file); };
   
     return (
@@ -281,7 +292,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
                 <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Kelola Label</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Buat label baru..." className={`flex-1 px-4 py-3 rounded-xl outline-none ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-sm font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={14} className="opacity-50" /></button></div>))}</div></div>
                 <div className={`flex items-center justify-between p-4 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium">AMOLED Mode</span></div><button onClick={toggleDark} className={`w-14 h-8 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-gray-300'}`}><motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: isDark ? 24 : 0 }} /></button></div>
               </div>
-              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-FixScroll-v17</div>
+              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Stable-v18</div>
             </motion.div>
           </>
         )}
@@ -307,10 +318,9 @@ export default function App() {
 
   const isScrolled = useScroll();
   const noteRefs = useRef({});
-  const lastScrolledId = useRef(null); // GUARD: To prevent repeated scrolling
+  const lastScrolledId = useRef(null); // GUARD: To prevent scroll jump
   const theme = useMemo(() => isDark ? THEMES[themeKey].dark : THEMES[themeKey].light, [themeKey, isDark]);
 
-  // --- REFINED BACK BUTTON LOGIC (SAFE) ---
   const stateRef = useRef({ selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode });
   
   useEffect(() => {
@@ -335,7 +345,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // --- NAVIGATION HELPERS ---
   const pushState = () => { window.history.pushState(null, ''); };
   const goBack = () => { window.history.back(); };
 
@@ -349,27 +358,22 @@ export default function App() {
 
   // --- FIXED SCROLL LOGIC ---
   useEffect(() => {
-    // Only scroll if we have a new selection AND it's different from the last time we scrolled
-    if (selectedId && noteRefs.current[selectedId] && lastScrolledId.current !== selectedId) {
-      // Small delay to allow layout to settle
+    // Only scroll if a note is selected AND it's a NEW selection
+    if (selectedId && lastScrolledId.current !== selectedId) {
       setTimeout(() => {
         if (noteRefs.current[selectedId]) {
-            // FIX: SCROLL TO START (TOP), NOT CENTER.
-            // This prevents the "jumping up" issue when content grows downwards.
             noteRefs.current[selectedId].scrollIntoView({ 
                 behavior: 'smooth', 
-                block: 'start', // Align top of card to top of view
+                block: 'start', // ALIGN TO TOP
                 inline: 'nearest'
             });
-            // We can also add a small manual adjustment if needed via window.scrollBy
-            // But block: 'start' is usually safest for long content.
         }
-      }, 300);
-      lastScrolledId.current = selectedId; // Mark as scrolled
+      }, 400); // Wait for transition
+      lastScrolledId.current = selectedId;
     } else if (!selectedId) {
-        lastScrolledId.current = null; // Reset when closed
+        lastScrolledId.current = null;
     }
-  }, [selectedId]);
+  }, [selectedId]); // Deps: Only selectedId
 
   const updateNote = (id, updates) => setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
   const filteredNotes = notes.filter(n => (n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content.toLowerCase().includes(searchQuery.toLowerCase())) && (activeTag === 'All' || n.tags.some(t => t === activeTag && allTags.includes(t))));
@@ -422,15 +426,13 @@ export default function App() {
       {!selectedId && (<div className={`px-6 mb-6 overflow-x-auto no-scrollbar pb-2 transition-opacity duration-300 ${isScrolled ? 'opacity-50 hover:opacity-100' : 'opacity-100'}`}><div className="flex gap-2">{['All', ...allTags].map(tag => (<button key={tag} onClick={() => setActiveTag(tag)} className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors border`} style={{ backgroundColor: activeTag === tag ? theme.primary : 'transparent', color: activeTag === tag ? (isDark ? '#000' : '#FFF') : theme.text, borderColor: activeTag === tag ? 'transparent' : theme.border }}>{tag}</button>))}</div></div>)}
 
       <main className="px-4 max-w-2xl mx-auto">
-        {/* ADDED SCROLL-MARGIN-TOP TO LAYOUT GROUP CONTAINER OR ITEMS FOR SAFER SCROLL */}
         <LayoutGroup>
           <motion.div layout className="grid grid-cols-2 gap-3" style={{ alignItems: 'start' }}>
             <AnimatePresence mode='popLayout'>
                 {filteredNotes.map((note) => (
-                    // WRAPPER DIV for Scroll Margin (Keeps header visible)
-                    <div key={note.id} className={selectedId === note.id ? "col-span-2 scroll-mt-24" : "col-span-1"}> 
+                    // WRAPPER DIV for Scroll Margin
+                    <div key={note.id} className={selectedId === note.id ? "col-span-2 scroll-mt-32" : "col-span-1"}> 
                         <NoteCard
-                        // Note: cardRef needs to be on the motion div usually, passing it down
                         cardRef={(el) => (noteRefs.current[note.id] = el)} 
                         note={note}
                         isSelected={selectedId === note.id}
