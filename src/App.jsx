@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useMotionValue, useTransform } from 'framer-motion';
 import { 
   Settings, Plus, Search, Moon, Sun, X, Undo2, Redo2, 
@@ -71,16 +71,6 @@ const useUndoRedo = (initialState) => {
   return [history[index], setState, undo, redo, index > 0, index < history.length - 1];
 };
 
-const useScroll = () => {
-    const [scrolled, setScrolled] = useState(false);
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 60);
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-    return scrolled;
-};
-
 // --- COMPONENTS ---
 
 const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
@@ -118,8 +108,9 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
     );
 };
 
-// --- NOTE CARD (STABILIZED) ---
-const NoteCard = ({ 
+// --- NOTE CARD (MEMOIZED & STABILIZED) ---
+// React.memo is CRITICAL here to prevent re-renders (and thus layout shifts) on parent state updates
+const NoteCard = React.memo(({ 
   note, isSelected, onClick, isAnySelected, theme, isDark, onUpdate, cardRef, availableTags, 
   isSelectionMode, isChecked, onToggleSelect, onDeleteSwipe, onClose 
 }) => {
@@ -134,18 +125,27 @@ const NoteCard = ({
   };
   const cancelTimer = () => { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } };
 
-  useEffect(() => { if (isSelected) onUpdate(note.id, noteState); }, [noteState, isSelected]);
-  useEffect(() => { if (!isSelected) setNoteState({ title: note.title, content: note.content }); }, [note.id]);
+  // Sync internal state to parent ONLY when needed, not on every keystroke
+  useEffect(() => { 
+      if (isSelected && (note.title !== noteState.title || note.content !== noteState.content)) {
+          // Debounce could be added here, but direct update is fine if parent doesn't force re-render this card
+          onUpdate(note.id, noteState); 
+      }
+  }, [noteState, isSelected, note.id]);
+
+  // Reset internal state when prop changes externally (and not selected)
+  useEffect(() => { 
+      if (!isSelected) setNoteState({ title: note.title, content: note.content }); 
+  }, [note.title, note.content, isSelected]);
 
   const handleInput = (e) => {
     const target = e.target;
-    // PURE CSS HEIGHT LOGIC. NO SCROLL INTERVENTION.
+    // Auto Height Logic - Native
     target.style.height = 'auto'; 
     target.style.height = target.scrollHeight + 'px';
     setNoteState({ ...noteState, content: target.value });
   };
   
-  // Initial Resize
   React.useLayoutEffect(() => {
     if (isSelected && textAreaRef.current) { 
         textAreaRef.current.style.height = 'auto'; 
@@ -164,9 +164,9 @@ const NoteCard = ({
   return (
     <motion.div
       ref={cardRef}
-      // V20 FIX: REMOVE 'layout' dependency on isSelected. 
-      // Always layout="position" to prevent full re-render flickering
-      layout="position"
+      // V21 FIX: Use layout="position" to be safe, but since we memoized, 
+      // typing inside won't trigger parent re-renders that reset layout.
+      layout="position" 
       
       drag={!isSelected && !isSelectionMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -190,8 +190,7 @@ const NoteCard = ({
           opacity: 1, 
           scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) 
       }}
-      // V20 FIX: Stiff spring to prevent "stuck" animation
-      transition={{ layout: { type: "spring", stiffness: 400, damping: 30 } }}
+      transition={{ layout: { duration: 0.35, type: "spring", stiffness: 250, damping: 25 } }}
       className={`relative rounded-3xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[40vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
     >
       <AnimatePresence>
@@ -202,7 +201,6 @@ const NoteCard = ({
         )}
       </AnimatePresence>
 
-      {/* HEADER */}
       <div className="flex justify-between items-start gap-2 relative shrink-0">
         {isSelected ? (
             <div className="w-full flex justify-between items-start">
@@ -219,7 +217,6 @@ const NoteCard = ({
         )}
       </div>
 
-      {/* CONTENT - NO ANIMATION ON CHILDREN TO PREVENT JITTER */}
       <div className="flex-1 w-full">
         {isSelected ? (
             <textarea 
@@ -236,7 +233,6 @@ const NoteCard = ({
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="flex flex-col mt-4 pt-3 shrink-0" style={{ borderTop: `1px solid ${theme.border}` }}>
         {isSelected && (
             <div className="flex flex-wrap gap-2 mb-4">
@@ -271,14 +267,14 @@ const NoteCard = ({
       </div>
     </motion.div>
   );
-};
+}); // END MEMO
 
 const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, isDark, toggleDark, allTags, setAllTags, notes, setNotes }) => {
     const [newTag, setNewTag] = useState('');
     const fileInputRef = useRef(null);
     const handleAddTag = () => { if (newTag && !allTags.includes(newTag)) { setAllTags([...allTags, newTag]); setNewTag(''); } };
     const handleDeleteTag = (tagToDelete) => { setAllTags(allTags.filter(t => t !== tagToDelete)); };
-    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '20.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v20-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
+    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '21.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v21-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
     const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Restored!'); } } catch (err) { alert('Error.'); } }; reader.readAsText(file); };
   
     return (
@@ -288,7 +284,14 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/80 z-[60]" />
             <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed bottom-0 left-0 right-0 rounded-t-[2rem] p-6 z-[70] shadow-2xl h-[85vh] overflow-y-auto" style={{ backgroundColor: isDark ? '#121212' : '#F2F2F7', color: isDark ? 'white' : 'black' }}>
               <div className="w-12 h-1.5 bg-gray-500/30 rounded-full mx-auto mb-6" />
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><Settings className="w-6 h-6" /> Pengaturan</h2>
+              
+              {/* DINDUY TITLE MOVED HERE */}
+              <div className="mb-8">
+                  <h1 className="text-4xl font-black tracking-tighter mb-2" style={{ color: theme.primary }}>Dinduy.</h1>
+                  <p className="text-sm opacity-50">Catatan Logika & Rasa.</p>
+              </div>
+
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-3"><Settings className="w-5 h-5" /> Pengaturan</h2>
               <div className="space-y-8">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Tema</label>
@@ -302,7 +305,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
                 <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Kelola Label</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Buat label baru..." className={`flex-1 px-4 py-3 rounded-xl outline-none ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-sm font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={14} className="opacity-50" /></button></div>))}</div></div>
                 <div className={`flex items-center justify-between p-4 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium">AMOLED Mode</span></div><button onClick={toggleDark} className={`w-14 h-8 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-gray-300'}`}><motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: isDark ? 24 : 0 }} /></button></div>
               </div>
-              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Stabil-v20</div>
+              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-ZenMemo-v21</div>
             </motion.div>
           </>
         )}
@@ -326,12 +329,11 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, count: 0, targetIds: [] });
 
-  const isScrolled = useScroll();
   const noteRefs = useRef({});
-  const lastScrolledId = useRef(null); // GUARD: To prevent scroll jump
+  const lastScrolledId = useRef(null); // GUARD
   const theme = useMemo(() => isDark ? THEMES[themeKey].dark : THEMES[themeKey].light, [themeKey, isDark]);
 
-  // --- REFINED BACK BUTTON LOGIC (SAFE) ---
+  // --- REFINED BACK BUTTON LOGIC ---
   const stateRef = useRef({ selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode });
   
   useEffect(() => {
@@ -356,7 +358,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // --- NAVIGATION HELPERS ---
   const pushState = () => { window.history.pushState(null, ''); };
   const goBack = () => { window.history.back(); };
 
@@ -368,26 +369,30 @@ export default function App() {
      else { pushState(); setDeleteModal({ isOpen: true, count: ids.length, targetIds: ids }); }
   };
 
-  // --- FIXED SCROLL LOGIC ---
+  // --- FIXED SCROLL LOGIC: SCROLL TO TOP WITH MARGIN ---
   useEffect(() => {
-    // Only scroll if a note is selected AND it's a NEW selection
     if (selectedId && lastScrolledId.current !== selectedId) {
       setTimeout(() => {
         if (noteRefs.current[selectedId]) {
+            // SCROLL TO START + NATIVE SCROLL MARGIN HANDLES THE OFFSET
             noteRefs.current[selectedId].scrollIntoView({ 
                 behavior: 'smooth', 
-                block: 'start', // ALIGN TO TOP
+                block: 'start',
                 inline: 'nearest'
             });
         }
-      }, 500); // Increased Delay to wait for animation
+      }, 400); 
       lastScrolledId.current = selectedId;
     } else if (!selectedId) {
         lastScrolledId.current = null;
     }
   }, [selectedId]);
 
-  const updateNote = (id, updates) => setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+  // MEMOIZED UPDATE FUNCTION TO KEEP PARENT STABLE
+  const updateNote = useCallback((id, updates) => {
+      setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+  }, []);
+
   const filteredNotes = notes.filter(n => (n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content.toLowerCase().includes(searchQuery.toLowerCase())) && (activeTag === 'All' || n.tags.some(t => t === activeTag && allTags.includes(t))));
 
   const handleToggleSelect = (id, triggerMode = false) => {
@@ -417,13 +422,22 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full transition-colors duration-300 ease-in-out font-sans selection:bg-black/20 pb-40" style={{ backgroundColor: theme.bg, color: theme.text }}>
-      <motion.header className="sticky top-0 z-50 px-6 pt-6 pb-4 flex items-center justify-between transition-all duration-300" style={{ backgroundColor: theme.bg, borderBottom: isScrolled ? `1px solid ${theme.border}` : '1px solid transparent' }}>
-        <div className="flex items-center gap-3 flex-1 overflow-hidden">
-            <h1 className={`font-black tracking-tighter transition-all duration-300 ${isScrolled ? 'text-2xl' : 'text-4xl'}`} style={{ color: theme.primary }}>Dinduy.</h1>
-            <div className={`flex-1 ml-4 max-w-[200px] transition-opacity duration-300 ${isScrolled && !selectedId ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <div className={`flex items-center px-3 py-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-black/5'}`}><Search size={14} className="opacity-40 mr-2" /><input className="bg-transparent outline-none text-sm w-full placeholder:text-current placeholder:opacity-30" placeholder="Cari..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
+      
+      {/* HEADER: CLEAN (NO TEXT) - ONLY SEARCH & SETTINGS */}
+      <motion.header className="sticky top-0 z-50 px-6 pt-6 pb-4 flex items-center justify-between transition-all duration-300" style={{ backgroundColor: theme.bg, borderBottom: '1px solid transparent' }}>
+        {/* Full Width Search Bar */}
+        <div className={`flex-1 mr-4`}>
+            <div className={`flex items-center px-4 py-3 rounded-full ${isDark ? 'bg-white/10' : 'bg-black/5'}`}>
+                <Search size={18} className="opacity-40 mr-3" />
+                <input 
+                    className="bg-transparent outline-none text-base w-full placeholder:text-current placeholder:opacity-30" 
+                    placeholder="Cari catatan..." 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                />
             </div>
         </div>
+        
         <div className="flex gap-2">
             <AnimatePresence>
                 {isSelectionMode && (
@@ -434,16 +448,17 @@ export default function App() {
         </div>
       </motion.header>
 
-      {!selectedId && (<div className="px-6 mb-4 mt-2"><div className="relative group transition-opacity duration-300" style={{ opacity: isScrolled ? 0 : 1, pointerEvents: isScrolled ? 'none' : 'auto' }}><Search className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" size={20} /><input type="text" placeholder="Cari..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full h-14 pl-12 pr-6 rounded-full outline-none transition-all shadow-sm focus:shadow-md text-lg placeholder:text-current placeholder:opacity-30" style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}` }} /></div></div>)}
-      {!selectedId && (<div className={`px-6 mb-6 overflow-x-auto no-scrollbar pb-2 transition-opacity duration-300 ${isScrolled ? 'opacity-50 hover:opacity-100' : 'opacity-100'}`}><div className="flex gap-2">{['All', ...allTags].map(tag => (<button key={tag} onClick={() => setActiveTag(tag)} className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors border`} style={{ backgroundColor: activeTag === tag ? theme.primary : 'transparent', color: activeTag === tag ? (isDark ? '#000' : '#FFF') : theme.text, borderColor: activeTag === tag ? 'transparent' : theme.border }}>{tag}</button>))}</div></div>)}
+      {/* FILTER TAGS */}
+      {!selectedId && (<div className={`px-6 mb-6 overflow-x-auto no-scrollbar pb-2 transition-opacity duration-300`}><div className="flex gap-2">{['All', ...allTags].map(tag => (<button key={tag} onClick={() => setActiveTag(tag)} className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors border`} style={{ backgroundColor: activeTag === tag ? theme.primary : 'transparent', color: activeTag === tag ? (isDark ? '#000' : '#FFF') : theme.text, borderColor: activeTag === tag ? 'transparent' : theme.border }}>{tag}</button>))}</div></div>)}
 
       <main className="px-4 max-w-2xl mx-auto">
         <LayoutGroup>
           <motion.div layout className="grid grid-cols-2 gap-3" style={{ alignItems: 'start' }}>
             <AnimatePresence mode='popLayout'>
                 {filteredNotes.map((note) => (
-                    // WRAPPER DIV for Scroll Margin
-                    <div key={note.id} className={selectedId === note.id ? "col-span-2 scroll-mt-32" : "col-span-1"}> 
+                    // WRAPPER DIV for Scroll Margin (LARGE MARGIN FOR HEADER)
+                    // Added scroll-mt-40 (approx 160px) to clear the header comfortably
+                    <div key={note.id} className={`${selectedId === note.id ? "col-span-2 scroll-mt-40" : "col-span-1"}`}> 
                         <NoteCard
                         cardRef={(el) => (noteRefs.current[note.id] = el)} 
                         note={note}
@@ -465,7 +480,14 @@ export default function App() {
             </AnimatePresence>
           </motion.div>
         </LayoutGroup>
-        {!selectedId && filteredNotes.length === 0 && (<div className="text-center mt-20 opacity-50 flex flex-col items-center"><AlertCircle size={48} className="mb-4 opacity-30" /><p>Kosong, Ham.</p></div>)}
+        
+        {/* EMPTY STATE */}
+        {!selectedId && filteredNotes.length === 0 && (
+            <div className="text-center mt-32 opacity-30 flex flex-col items-center">
+                <h1 className="text-6xl font-black tracking-tighter mb-4" style={{ color: theme.primary }}>Dinduy.</h1>
+                <p>Belum ada catatan.</p>
+            </div>
+        )}
       </main>
 
       <AnimatePresence>
@@ -486,13 +508,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <DeleteModal 
-        isOpen={deleteModal.isOpen} 
-        onClose={goBack} 
-        onConfirm={() => performDelete(deleteModal.targetIds)} 
-        count={deleteModal.count} 
-      />
-
+      <DeleteModal isOpen={deleteModal.isOpen} onClose={goBack} onConfirm={() => performDelete(deleteModal.targetIds)} count={deleteModal.count} />
       <SettingsSheet isOpen={isSettingsOpen} onClose={goBack} theme={theme} setThemeKey={setThemeKey} currentThemeKey={themeKey} isDark={isDark} toggleDark={() => setIsDark(!isDark)} allTags={allTags} setAllTags={setAllTags} notes={notes} setNotes={setNotes} />
     </div>
   );
