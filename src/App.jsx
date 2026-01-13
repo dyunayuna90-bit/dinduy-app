@@ -6,52 +6,47 @@ import {
   CheckCircle2, Circle, AlertTriangle
 } from 'lucide-react';
 
-// --- DATA & THEMES ---
+// --- GOOGLE MATERIAL YOU INSPIRED THEMES (CREAMY) ---
 
 const THEMES = {
   default: { 
-    light: { primary: '#000000', bg: '#F2F2F2', surface: '#FFFFFF', text: '#1C1B1F', outline: '#79747E', border: '#E0E0E0' },
-    dark:  { primary: '#FFFFFF', bg: '#000000', surface: '#121212', text: '#E6E1E5', outline: '#938F99', border: '#333333' }
+    name: 'Classic',
+    light: { primary: '#444746', bg: '#F0F2F5', surface: '#FFFFFF', text: '#1F1F1F', outline: '#747775', border: '#C4C7C5' },
+    dark:  { primary: '#C4C7C5', bg: '#111114', surface: '#1E1F20', text: '#E3E3E3', outline: '#8E918F', border: '#444746' }
   },
-  lavender: { 
-    light: { primary: '#6750A4', bg: '#F3EDF7', surface: '#FFFFFF', text: '#1D192B', outline: '#79747E', border: '#E6E0E9' },
-    dark:  { primary: '#D0BCFF', bg: '#000000', surface: '#141218', text: '#E6E1E5', outline: '#938F99', border: '#2B2930' }
-  },
-  royal: { 
-    light: { primary: '#4169E1', bg: '#EEF2FF', surface: '#FFFFFF', text: '#0F172A', outline: '#64748B', border: '#E2E8F0' },
-    dark:  { primary: '#8DA4EF', bg: '#000000', surface: '#0B1120', text: '#F1F5F9', outline: '#94A3B8', border: '#1E293B' }
-  },
-  mint: { 
-    light: { primary: '#006C4C', bg: '#F2FDF7', surface: '#FFFFFF', text: '#002114', outline: '#707973', border: '#DAE5E0' },
-    dark:  { primary: '#4CE1B6', bg: '#000000', surface: '#001510', text: '#DEE4E0', outline: '#89938D', border: '#10201A' }
-  },
-  sunset: { 
-    light: { primary: '#E65100', bg: '#FFF3E0', surface: '#FFFFFF', text: '#3E2723', outline: '#FFCCBC', border: '#FFAB91' },
-    dark:  { primary: '#FFB74D', bg: '#000000', surface: '#1A120B', text: '#FFF3E0', outline: '#D84315', border: '#3E2723' }
-  },
-  coffee: { 
-    light: { primary: '#6D4C41', bg: '#EFEBE9', surface: '#FFFFFF', text: '#3E2723', outline: '#BCAAA4', border: '#D7CCC8' },
-    dark:  { primary: '#D7CCC8', bg: '#000000', surface: '#141110', text: '#EFEBE9', outline: '#8D6E63', border: '#2D2422' }
-  },
-  autumn: { 
-    light: { primary: '#BF360C', bg: '#FBE9E7', surface: '#FFFFFF', text: '#260E04', outline: '#FFAB91', border: '#FF8A65' },
-    dark:  { primary: '#FF8A65', bg: '#000000', surface: '#1A0F0B', text: '#FBE9E7', outline: '#D84315', border: '#331B14' }
+  matcha: { 
+    name: 'Matcha',
+    light: { primary: '#4C662B', bg: '#F5F7ED', surface: '#FFFFFF', text: '#191C16', outline: '#75796C', border: '#C5C8BA' },
+    dark:  { primary: '#B1D18A', bg: '#12150E', surface: '#1A1D17', text: '#E4E7DB', outline: '#8F9285', border: '#40443A' }
   },
   ocean: {
-    light: { primary: '#006C75', bg: '#F2FBFD', surface: '#FFFFFF', text: '#001F24', outline: '#6F797A', border: '#DBE4E6' },
-    dark:  { primary: '#4FD8EB', bg: '#000000', surface: '#0D1214', text: '#E0F7FA', outline: '#8E9192', border: '#1A2C30' }
+    name: 'Ocean',
+    light: { primary: '#006689', bg: '#F2F8FB', surface: '#FFFFFF', text: '#001E2B', outline: '#71787D', border: '#C0C8CC' },
+    dark:  { primary: '#79D1FF', bg: '#0D1418', surface: '#151D22', text: '#E0F3FF', outline: '#8A9296', border: '#3C474C' }
+  },
+  rose: {
+    name: 'Rose',
+    light: { primary: '#9C4146', bg: '#FFF8F7', surface: '#FFFFFF', text: '#410006', outline: '#857373', border: '#F4DDDD' },
+    dark:  { primary: '#FFB3B4', bg: '#200F10', surface: '#281819', text: '#FFDAD9', outline: '#A08C8C', border: '#534344' }
+  },
+  sand: {
+    name: 'Sand',
+    light: { primary: '#765A2C', bg: '#FFFBFF', surface: '#FFF9EF', text: '#261900', outline: '#7E7667', border: '#EBE1CF' },
+    dark:  { primary: '#E7C26C', bg: '#181308', surface: '#201B10', text: '#FFEFD4', outline: '#989080', border: '#4D4638' }
   },
 };
 
+// --- PROFESSIONAL DATA ---
+
 const INITIAL_NOTES = [
-  { id: 1, title: 'Revisi Skripsi Sejarah', content: 'Bab 1: Perdalam lagi soal dampak sosial tanam paksa di Jawa Tengah. Cari referensi buku Ricklefs terbaru di perpus UNJ. \n\nTarget minggu ini kelar Bab 2 juga.', date: '10:30 AM', tags: ['Kuliah'] },
-  { id: 2, title: 'Janji Dinda ❤️', content: 'Jumat jam 4 sore. Jemput di Fak. MIPA UNJ.\n- Bawain coklat (Silverqueen Matcha)\n- Jangan telat (Dinda gasuka nunggu)\n- Makan di Blok M Rawamangun lt 2.', date: 'Yesterday', tags: ['Love', 'Pribadi'] },
-  { id: 3, title: 'Konsep Lukisan', content: 'Medium: Oil on Canvas 40x60.\nTema: "Entropi Kehidupan"\nVisual: Akar pohon beringin yang morphing jadi double helix DNA. Warna dominan hijau lumut & crimson.', date: '2 days ago', tags: ['Art', 'Hobi'] },
-  { id: 4, title: 'Beli Ziga', content: 'Stok tinggal sebatang bro. Mampir warung Madura balik kuliah.', date: '1 week ago', tags: ['Misc'] },
-  { id: 5, title: 'Buku Bacaan', content: '1. Sapiens - Yuval Noah Harari\n2. The Gene - Siddhartha Mukherjee', date: '1 month ago', tags: ['Hobi'] },
+  { id: 1, title: 'Q3 Product Roadmap', content: 'Objectives:\n- Improve mobile retention by 15%\n- Launch Dark Mode for web dashboard\n- Optimise API response time (Target: <200ms)\n\nKey Dates:\n- Aug 15: Beta Release\n- Sept 1: Full Rollout', date: '10:30 AM', tags: ['Work', 'Strategy'] },
+  { id: 2, title: 'Meeting Minutes - Design Sync', content: 'Attendees: Sarah, John, Mike\n\nDiscussion Points:\n1. Icon consistency across platforms\n2. Typography scale for mobile\n3. New color palette approval\n\nAction Items:\n- Sarah to update Figma library by Friday.\n- Mike to review accessibility contrast.', date: 'Yesterday', tags: ['Work', 'Meeting'] },
+  { id: 3, title: 'Backend Architecture Refactor', content: 'Proposal to switch from Monolith to Microservices for the payment gateway.\n\nBenefits:\n- Isolated failures\n- Independent scaling\n\nRisks:\n- Complexity in deployment\n- Data consistency challenges', date: '2 days ago', tags: ['Dev', 'Tech'] },
+  { id: 4, title: 'Grocery List', content: '- Oat Milk\n- Sourdough Bread\n- Eggs (Organic)\n- Greek Yogurt\n- Blueberries\n- Coffee Beans', date: '1 week ago', tags: ['Personal'] },
+  { id: 5, title: 'Book Recommendations', content: '1. "Thinking, Fast and Slow" - Daniel Kahneman\n2. "Deep Work" - Cal Newport\n3. "The Design of Everyday Things" - Don Norman', date: '1 month ago', tags: ['Personal', 'Reading'] },
 ];
 
-const INITIAL_TAGS = ['Kuliah', 'Pribadi', 'Love', 'Art', 'Hobi', 'Misc'];
+const INITIAL_TAGS = ['Work', 'Personal', 'Dev', 'Strategy', 'Meeting', 'Reading'];
 
 // --- CUSTOM HOOKS ---
 
@@ -74,7 +69,7 @@ const useUndoRedo = (initialState) => {
 const useScroll = () => {
     const [scrolled, setScrolled] = useState(false);
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 40);
+        const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -85,28 +80,30 @@ const useScroll = () => {
 
 const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
     const [dontAsk, setDontAsk] = useState(false);
-    
     const handleConfirm = () => {
         if (dontAsk) localStorage.setItem('dinduy_skip_delete_confirm', 'true');
         onConfirm(); 
     };
-
     return (
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#000000] bg-opacity-95" onClick={onClose} />
-                    <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-sm rounded-xl p-6 bg-[#121212] text-white border border-white/10 shadow-2xl">
+                    {/* KEY ADDED TO PREVENT CRASH */}
+                    <motion.div key="backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#000000] bg-opacity-80 backdrop-blur-none" onClick={onClose} />
+                    <motion.div key="modal" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-xs rounded-2xl p-6 bg-white dark:bg-[#1E1E1E] shadow-xl overflow-hidden">
                         <div className="flex flex-col items-center text-center gap-4">
-                            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2"><AlertTriangle size={32} /></div>
-                            <h3 className="text-xl font-bold">Yakin hapus {count} catatan?</h3>
+                            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-1"><AlertTriangle size={24} /></div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete {count} notes?</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Permanently remove these items.</p>
+                            </div>
                             <div className="flex items-center gap-2 py-2 cursor-pointer" onClick={() => setDontAsk(!dontAsk)}>
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${dontAsk ? 'bg-red-500 border-red-500' : 'border-white/30'}`}>{dontAsk && <CheckCircle2 size={14} />}</div>
-                                <span className="text-xs opacity-70">Jangan ingatkan lagi</span>
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${dontAsk ? 'bg-red-500 border-red-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>{dontAsk && <CheckCircle2 size={14} />}</div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">Don't ask again</span>
                             </div>
                             <div className="flex gap-3 w-full mt-2">
-                                <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 font-medium transition-colors">Batal</button>
-                                <button onClick={handleConfirm} className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-colors">Hapus</button>
+                                <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-medium text-gray-700 dark:text-gray-300">Cancel</button>
+                                <button onClick={handleConfirm} className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold">Delete</button>
                             </div>
                         </div>
                     </motion.div>
@@ -116,7 +113,7 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
     );
 };
 
-// --- NOTE CARD (FIXED SCROLL & SELECT) ---
+// --- NOTE CARD (STRICT HEIGHT CONTROL) ---
 const NoteCard = React.memo(({ 
   note, isSelected, onClick, isAnySelected, theme, isDark, onUpdate, cardRef, availableTags, 
   isSelectionMode, isChecked, onToggleSelect, onDeleteSwipe, onClose 
@@ -125,38 +122,41 @@ const NoteCard = React.memo(({
   const textAreaRef = useRef(null);
   const timerRef = useRef(null);
   
-  const handlePointerDown = () => {
-    if (!isSelectionMode && !isSelected) {
-        timerRef.current = setTimeout(() => { onToggleSelect(note.id, true); }, 500); 
-    }
-  };
+  // Disable layout animation completely when selected to prevent any jump
+  const shouldAnimateLayout = !isSelected; 
+
+  const handlePointerDown = () => { if (!isSelectionMode && !isSelected) timerRef.current = setTimeout(() => onToggleSelect(note.id, true), 500); };
   const cancelTimer = () => { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } };
 
   useEffect(() => { if (isSelected && (note.title !== noteState.title || note.content !== noteState.content)) { onUpdate(note.id, noteState); } }, [noteState, isSelected, note.id]);
   useEffect(() => { if (!isSelected) setNoteState({ title: note.title, content: note.content }); }, [note.title, note.content, isSelected]);
 
-  // --- HYBRID SCROLL LOGIC (STABILIZED) ---
+  // --- STRICT HEIGHT LOGIC ---
   const handleInput = (e) => {
     const target = e.target;
-    const maxHeight = window.innerHeight * 0.60; // 60% Max Height
+    // Set to auto first
+    target.style.height = 'auto';
     
-    target.style.height = 'auto'; 
+    // Check height limits (Max 55vh)
+    // If content exceeds limit, we cap height and enable internal scroll
+    // This PREVENTS the window from growing and scrolling down
+    const maxHeight = window.innerHeight * 0.55; 
     
     if (target.scrollHeight > maxHeight) {
         target.style.height = `${maxHeight}px`;
-        target.style.overflowY = 'auto';
+        target.style.overflowY = 'auto'; // Enable internal scroll
     } else {
         target.style.height = `${target.scrollHeight}px`;
-        target.style.overflowY = 'hidden';
+        target.style.overflowY = 'hidden'; // Hide internal scroll
     }
+    
     setNoteState({ ...noteState, content: target.value });
-    // NO window.scrollBy HERE! Kills the drift.
   };
   
   React.useLayoutEffect(() => {
     if (isSelected && textAreaRef.current) { 
         const target = textAreaRef.current;
-        const maxHeight = window.innerHeight * 0.60;
+        const maxHeight = window.innerHeight * 0.55;
         target.style.height = 'auto';
         if (target.scrollHeight > maxHeight) {
             target.style.height = `${maxHeight}px`;
@@ -173,22 +173,21 @@ const NoteCard = React.memo(({
     onUpdate(note.id, { ...note, tags: newTags });
   };
   const validTags = note.tags.filter(t => availableTags.includes(t));
-  const x = useMotionValue(0);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]); 
   
   return (
     <motion.div
       ref={cardRef}
-      layout // ANIMASI AKTIF
+      layout={shouldAnimateLayout} // Only animate layout when NOT expanding
       
       drag={!isSelected && !isSelectionMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragStart={cancelTimer}
       onDragEnd={(e, info) => { if (Math.abs(info.offset.x) > 100) onDeleteSwipe(note.id); }}
+      
       style={{ 
-        x, opacity, backgroundColor: theme.surface, color: theme.text, 
-        border: `1px solid ${isChecked ? theme.primary : (isSelected ? theme.primary + '40' : theme.border)}`, 
-        boxShadow: 'none', 
+        backgroundColor: theme.surface, color: theme.text, 
+        border: `1px solid ${isChecked ? theme.primary : (isSelected ? 'transparent' : theme.border)}`,
+        boxShadow: isSelected ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
         zIndex: isSelected ? 30 : 0 
       }}
       
@@ -198,20 +197,16 @@ const NoteCard = React.memo(({
       onContextMenu={(e) => e.preventDefault()} 
       onClick={isSelectionMode ? () => onToggleSelect(note.id) : (isSelected ? null : onClick)}
 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ 
-          opacity: 1, 
-          scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) 
-      }}
-      transition={{ layout: { type: "spring", stiffness: 300, damping: 30 } }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: isChecked ? 0.95 : 1 }}
+      transition={{ layout: { duration: 0.3, ease: "circOut" } }}
       
-      // ROUNDED XL (Lebih tajam/modern)
-      className={`relative rounded-xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[30vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
+      className={`relative rounded-2xl overflow-hidden flex flex-col gap-2 transition-colors duration-300 ${isSelected ? 'col-span-2 h-auto py-6 cursor-default' : 'col-span-1 h-fit p-4 cursor-pointer touch-pan-y active:scale-98'}`}
     >
       <AnimatePresence>
         {(isSelectionMode || isChecked) && (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute top-4 right-4 z-10">
-                {isChecked ? <div className="rounded-full bg-blue-500 text-white"><CheckCircle2 size={24} fill={theme.primary} color={isDark ? "black" : "white"} /></div> : <Circle size={24} className="opacity-30" />}
+            <motion.div key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute top-3 right-3 z-10">
+                {isChecked ? <div className="rounded-full bg-blue-500 text-white"><CheckCircle2 size={22} fill={theme.primary} color={isDark ? "black" : "white"} /></div> : <Circle size={22} className="opacity-30" />}
             </motion.div>
         )}
       </AnimatePresence>
@@ -220,21 +215,21 @@ const NoteCard = React.memo(({
         {isSelected ? (
             <div className="w-full flex justify-between items-start">
                 <input 
-                    className="font-bold text-2xl bg-transparent outline-none w-full pb-2 mr-2 select-text" // SELECT-TEXT ENABLED
-                    style={{ color: theme.text, borderBottom: `1px solid ${theme.border}` }} 
+                    className="font-bold text-2xl bg-transparent outline-none w-full pb-2 mr-2 select-text" 
+                    style={{ color: theme.text }} 
                     value={noteState.title} 
                     onChange={(e) => setNoteState({ ...noteState, title: e.target.value })} 
-                    placeholder="Judul..." 
+                    placeholder="Title" 
                 />
                 <button 
-                  className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`} 
+                  className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`} 
                   onClick={(e) => { e.stopPropagation(); onClose(); }}
                 >
                     <X size={20} />
                 </button>
             </div>
         ) : (
-            <h3 className={`font-bold text-lg leading-tight w-full break-words line-clamp-3 ${isSelectionMode ? 'pr-8' : ''}`}>{note.title || <span className="opacity-30 italic">Tanpa Judul</span>}</h3>
+            <h3 className={`font-semibold text-base leading-snug w-full break-words line-clamp-3 ${isSelectionMode ? 'pr-6' : ''}`}>{note.title || <span className="opacity-40 italic">Untitled</span>}</h3>
         )}
       </div>
 
@@ -242,43 +237,44 @@ const NoteCard = React.memo(({
         {isSelected ? (
             <textarea 
                 ref={textAreaRef} 
-                className="w-full bg-transparent outline-none resize-none text-base leading-relaxed p-1 select-text" // SELECT-TEXT ENABLED
-                style={{ fontFamily: 'sans-serif', minHeight: '200px', color: theme.text }} 
+                className="w-full bg-transparent outline-none resize-none text-base leading-relaxed p-0 select-text" 
+                // Initial min-height
+                style={{ fontFamily: 'sans-serif', minHeight: '300px', color: theme.text }} 
                 value={noteState.content} 
                 onChange={handleInput} 
-                placeholder="Tulis catatan..." 
+                placeholder="Type something..." 
                 autoFocus={false} 
             />
         ) : (
-            <p className="text-sm opacity-80 whitespace-pre-wrap line-clamp-[6] break-words" style={{ fontFamily: 'sans-serif' }}>{note.content}</p>
+            <p className="text-sm opacity-70 whitespace-pre-wrap line-clamp-5 break-words" style={{ fontFamily: 'sans-serif', lineHeight: '1.6' }}>{note.content}</p>
         )}
       </div>
 
-      <div className="flex flex-col mt-4 pt-3 shrink-0" style={{ borderTop: `1px solid ${theme.border}` }}>
+      <div className="flex flex-col mt-2 pt-2 shrink-0 border-t border-dashed" style={{ borderColor: isSelected ? theme.border : 'transparent' }}>
         {isSelected && (
             <div className="flex flex-wrap gap-2 mb-4">
                 {availableTags.map(tag => (
-                    <button key={tag} onClick={(e) => { e.stopPropagation(); handleTagToggle(tag); }} className={`text-xs px-3 py-1.5 rounded-full border transition-all ${note.tags.includes(tag) ? 'border-transparent' : isDark ? 'bg-transparent text-white/50 border-white/10' : 'bg-transparent text-black/50 border-black/10'}`} style={ note.tags.includes(tag) ? { backgroundColor: theme.primary, color: isDark ? '#000' : '#FFF' } : {} }>{tag}</button>
+                    <button key={tag} onClick={(e) => { e.stopPropagation(); handleTagToggle(tag); }} className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${note.tags.includes(tag) ? 'border-transparent font-medium' : isDark ? 'bg-transparent text-white/50 border-white/10' : 'bg-transparent text-black/50 border-black/10'}`} style={ note.tags.includes(tag) ? { backgroundColor: theme.primary, color: isDark ? '#000' : '#FFF' } : {} }>{tag}</button>
                 ))}
             </div>
         )}
-        <div className="flex justify-between items-center h-10">
+        <div className="flex justify-between items-center h-8">
             {isSelected ? (
                 <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-medium opacity-50">{note.date}</span>
-                    <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5'}`}>
-                        <button onClick={(e) => { e.stopPropagation(); undo(); }} disabled={!canUndo} className={`p-1.5 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'} ${!canUndo && 'opacity-20'}`}><Undo2 size={18} /></button>
-                        <div className={`w-[1px] h-4 ${isDark ? 'bg-white/20' : 'bg-black/20'}`}></div>
-                        <button onClick={(e) => { e.stopPropagation(); redo(); }} disabled={!canRedo} className={`p-1.5 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'} ${!canRedo && 'opacity-20'}`}><Redo2 size={18} /></button>
+                    <span className="text-xs font-medium opacity-40">{note.date}</span>
+                    <div className={`flex items-center gap-1 rounded-lg px-2 py-1 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                        <button onClick={(e) => { e.stopPropagation(); undo(); }} disabled={!canUndo} className="p-1 opacity-50 disabled:opacity-20"><Undo2 size={16} /></button>
+                        <div className={`w-[1px] h-3 ${isDark ? 'bg-white/20' : 'bg-black/20'}`}></div>
+                        <button onClick={(e) => { e.stopPropagation(); redo(); }} disabled={!canRedo} className="p-1 opacity-50 disabled:opacity-20"><Redo2 size={16} /></button>
                     </div>
                 </div>
             ) : (
                 <>
-                    <span className="text-xs font-medium opacity-60">{note.date}</span>
+                    <span className="text-[10px] font-medium opacity-40">{note.date}</span>
                     {validTags.length > 0 && (
                         <div className="flex gap-1 overflow-hidden max-w-[60%] flex-wrap justify-end">
-                            {validTags.map(tag => (
-                                <span key={tag} className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wider truncate ${isDark ? 'bg-white/10 text-white/70' : 'bg-black/5 text-black/70'}`}>{tag}</span>
+                            {validTags.slice(0,2).map(tag => (
+                                <span key={tag} className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider truncate ${isDark ? 'bg-white/10 text-white/70' : 'bg-black/5 text-black/60'}`}>{tag}</span>
                             ))}
                         </div>
                     )}
@@ -295,25 +291,25 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
     const fileInputRef = useRef(null);
     const handleAddTag = () => { if (newTag && !allTags.includes(newTag)) { setAllTags([...allTags, newTag]); setNewTag(''); } };
     const handleDeleteTag = (tagToDelete) => { setAllTags(allTags.filter(t => t !== tagToDelete)); };
-    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '27.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v27-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
-    const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Restored!'); } } catch (err) { alert('Error.'); } }; reader.readAsText(file); };
+    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '28.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v28-backup.json`; a.click(); };
+    const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Backup restored!'); } } catch (err) { alert('Invalid file.'); } }; reader.readAsText(file); };
   
     return (
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/80 z-[60]" />
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed bottom-0 left-0 right-0 rounded-t-[2rem] p-6 z-[70] shadow-2xl h-[85vh] overflow-y-auto" style={{ backgroundColor: isDark ? '#121212' : '#F2F2F7', color: isDark ? 'white' : 'black' }}>
-              <div className="w-12 h-1.5 bg-gray-500/30 rounded-full mx-auto mb-6" />
-              <div className="mb-8"><h1 className="text-4xl font-black tracking-tighter mb-2" style={{ color: theme.primary }}>Dinduy.</h1><p className="text-sm opacity-50">Catatan Logika & Rasa.</p></div>
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-3"><Settings className="w-5 h-5" /> Pengaturan</h2>
+            <motion.div key="backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+            <motion.div key="sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed bottom-0 left-0 right-0 rounded-t-3xl p-6 z-[70] shadow-2xl h-[85vh] overflow-y-auto" style={{ backgroundColor: isDark ? '#121212' : '#FFFFFF', color: isDark ? 'white' : 'black' }}>
+              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-8" />
+              <div className="mb-8"><h1 className="text-3xl font-bold tracking-tight mb-1" style={{ color: theme.primary }}>Dinduy.</h1><p className="text-sm opacity-50">Logical & Emotional Notes.</p></div>
+              <h2 className="text-lg font-bold mb-6 flex items-center gap-3 opacity-80"><Settings className="w-5 h-5" /> Settings</h2>
               <div className="space-y-8">
-                <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Tema</label><div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">{['default', 'lavender', 'royal', 'mint', 'sunset', 'coffee', 'autumn', 'ocean'].map((k) => (<button key={k} onClick={() => setThemeKey(k)} className={`w-14 h-14 rounded-full flex items-center justify-center border-2 shrink-0 transition-transform active:scale-90`} style={{ backgroundColor: k === 'default' ? '#333' : THEMES[k].light.primary, borderColor: currentThemeKey === k ? (isDark ? 'white' : 'black') : 'transparent' }} />))}</div></div>
-                <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Data</label><div className="flex gap-3"><button onClick={handleExport} className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}><Download size={18} /> Export</button><button onClick={() => fileInputRef.current?.click()} className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}><Upload size={18} /> Import</button><input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleImport} /></div></div>
-                <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Kelola Label</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Buat label baru..." className={`flex-1 px-4 py-3 rounded-xl outline-none ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-sm font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={14} className="opacity-50" /></button></div>))}</div></div>
-                <div className={`flex items-center justify-between p-4 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium">AMOLED Mode</span></div><button onClick={toggleDark} className={`w-14 h-8 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-gray-300'}`}><motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: isDark ? 24 : 0 }} /></button></div>
+                <div><label className="text-xs font-bold uppercase tracking-wider opacity-40 mb-4 block">Appearance</label><div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">{Object.keys(THEMES).map((k) => (<button key={k} onClick={() => setThemeKey(k)} className={`w-12 h-12 rounded-full flex items-center justify-center border-2 shrink-0 transition-transform active:scale-90`} style={{ backgroundColor: k === 'default' ? '#333' : THEMES[k].light.primary, borderColor: currentThemeKey === k ? (isDark ? 'white' : 'black') : 'transparent' }} />))}</div></div>
+                <div><label className="text-xs font-bold uppercase tracking-wider opacity-40 mb-4 block">Data</label><div className="flex gap-3"><button onClick={handleExport} className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium text-sm ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}><Download size={16} /> Export</button><button onClick={() => fileInputRef.current?.click()} className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium text-sm ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}><Upload size={16} /> Import</button><input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleImport} /></div></div>
+                <div><label className="text-xs font-bold uppercase tracking-wider opacity-40 mb-4 block">Manage Tags</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="New tag..." className={`flex-1 px-4 py-3 rounded-xl outline-none text-sm ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus size={20} /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-xs font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12} className="opacity-50" /></button></div>))}</div></div>
+                <div className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium text-sm">Dark Mode</span></div><button onClick={toggleDark} className={`w-12 h-7 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-black/20'}`}><motion.div layout className="w-5 h-5 bg-white rounded-full shadow-sm" animate={{ x: isDark ? 20 : 0 }} /></button></div>
               </div>
-              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Copycat-v27</div>
+              <div className="mt-12 text-center opacity-20 text-[10px] font-mono">v29.0.0-Fixed</div>
             </motion.div>
           </>
         )}
@@ -342,6 +338,7 @@ export default function App() {
   const lastScrolledId = useRef(null); 
   const theme = useMemo(() => isDark ? THEMES[themeKey].dark : THEMES[themeKey].light, [themeKey, isDark]);
 
+  // --- SAFE HASH NAVIGATION ---
   const stateRef = useRef({ selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode });
   useEffect(() => { stateRef.current = { selectedId, isSettingsOpen, deleteModalOpen: deleteModal.isOpen, isSelectionMode }; }, [selectedId, isSettingsOpen, deleteModal.isOpen, isSelectionMode]);
 
@@ -381,7 +378,7 @@ export default function App() {
     if (selectedId && lastScrolledId.current !== selectedId) {
       setTimeout(() => {
         if (noteRefs.current[selectedId]) {
-            const offset = 120; 
+            const offset = 80; 
             const bodyRect = document.body.getBoundingClientRect().top;
             const elementRect = noteRefs.current[selectedId].getBoundingClientRect().top;
             const elementPosition = elementRect - bodyRect;
@@ -422,12 +419,11 @@ export default function App() {
       }
   };
 
-  // --- DUPLICATE LOGIC ---
   const handleDuplicate = () => {
       const selectedNotes = notes.filter(n => selectedIds.includes(n.id));
       const newDuplicates = selectedNotes.map(n => ({
           ...n,
-          id: Date.now() + Math.random(), // Unique ID
+          id: Date.now() + Math.random(),
           title: `${n.title} (Copy)`,
           date: 'Just now'
       }));
@@ -449,18 +445,17 @@ export default function App() {
     <div className="min-h-screen w-full transition-colors duration-300 ease-in-out font-sans selection:bg-black/20 pb-40" style={{ backgroundColor: theme.bg, color: theme.text }}>
       <motion.header className="sticky top-0 z-50 px-6 pt-6 pb-4 flex items-center justify-between transition-all duration-300" style={{ backgroundColor: theme.bg, borderBottom: isScrolled ? `1px solid ${theme.border}` : '1px solid transparent' }}>
         <div className={`flex-1 mr-4`}>
-            <div className={`flex items-center px-4 py-3 rounded-full ${isDark ? 'bg-white/10' : 'bg-black/5'}`}>
+            <div className={`flex items-center px-4 py-3 rounded-full ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
                 <Search size={18} className="opacity-40 mr-3" />
-                <input className="bg-transparent outline-none text-base w-full placeholder:text-current placeholder:opacity-30" placeholder="Cari catatan..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                <input className="bg-transparent outline-none text-base w-full placeholder:text-current placeholder:opacity-30" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
         </div>
         <div className="flex gap-2">
             <AnimatePresence>
                 {isSelectionMode && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex gap-2">
-                        {/* DUPLICATE BUTTON */}
-                        <button onClick={handleDuplicate} className="p-3 rounded-full bg-blue-500 text-white shadow-lg"><Copy size={24} /></button>
-                        <button onClick={() => openDeleteModal(selectedIds)} className="p-3 rounded-full bg-red-500 text-white shadow-lg"><Trash2 size={24} /></button>
+                    <motion.div key="action-bar" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex gap-2">
+                        <button onClick={handleDuplicate} className="p-3 rounded-full bg-blue-500 text-white shadow-lg"><Copy size={22} /></button>
+                        <button onClick={() => openDeleteModal(selectedIds)} className="p-3 rounded-full bg-red-500 text-white shadow-lg"><Trash2 size={22} /></button>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -475,7 +470,7 @@ export default function App() {
           <motion.div layout className="grid grid-cols-2 gap-3" style={{ alignItems: 'start' }}>
             <AnimatePresence mode='popLayout'>
                 {filteredNotes.map((note) => (
-                    <div key={note.id} className={`${selectedId === note.id ? "col-span-2 scroll-mt-40" : "col-span-1"}`}> 
+                    <div key={note.id} className={`${selectedId === note.id ? "col-span-2 scroll-mt-24" : "col-span-1"}`}> 
                         <NoteCard
                         cardRef={(el) => (noteRefs.current[note.id] = el)} 
                         note={note}
@@ -501,14 +496,14 @@ export default function App() {
         {!selectedId && filteredNotes.length === 0 && (
             <div className="text-center mt-32 opacity-30 flex flex-col items-center">
                 <h1 className="text-6xl font-black tracking-tighter mb-4" style={{ color: theme.primary }}>Dinduy.</h1>
-                <p>Belum ada catatan.</p>
+                <p>No notes found.</p>
             </div>
         )}
       </main>
 
       <AnimatePresence>
         {!selectedId && !isSelectionMode && (
-            <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="fixed bottom-8 right-6 w-16 h-16 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex items-center justify-center z-30" style={{ backgroundColor: theme.primary, color: isDark ? '#000' : '#FFF' }} onClick={() => { const newId = Date.now(); const newNote = { id: newId, title: '', content: '', date: 'Just now', tags: [] }; setNotes([newNote, ...notes]); openNote(newId); setSearchQuery(''); }}>
+            <motion.button key="fab" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="fixed bottom-8 right-6 w-16 h-16 rounded-2xl shadow-xl flex items-center justify-center z-30" style={{ backgroundColor: theme.primary, color: isDark ? '#000' : '#FFF' }} onClick={() => { const newId = Date.now(); const newNote = { id: newId, title: '', content: '', date: 'Just now', tags: [] }; setNotes([newNote, ...notes]); openNote(newId); setSearchQuery(''); }}>
                 <Plus size={32} strokeWidth={3} />
             </motion.button>
         )}
@@ -516,10 +511,10 @@ export default function App() {
       
       <AnimatePresence>
         {isSelectionMode && (
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#121212] border border-white/10 text-white px-6 py-3 rounded-full shadow-2xl z-40 flex items-center gap-4">
-                <span className="font-bold">{selectedIds.length} Dipilih</span>
+            <motion.div key="selection-bar" initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#121212] border border-white/10 text-white px-6 py-3 rounded-full shadow-2xl z-40 flex items-center gap-4">
+                <span className="font-bold">{selectedIds.length} Selected</span>
                 <div className="w-[1px] h-4 bg-white/20"></div>
-                <button onClick={goBack} className="text-sm opacity-70 hover:opacity-100">Batal</button>
+                <button onClick={goBack} className="text-sm opacity-70 hover:opacity-100">Cancel</button>
             </motion.div>
         )}
       </AnimatePresence>
