@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, LayoutGroup, useMotionValue, useTransform } from 'framer-motion';
 import { 
   Settings, Plus, Search, Moon, Sun, X, Undo2, Redo2, 
-  Download, Upload, AlertCircle, Trash2, 
+  Download, Upload, AlertCircle, Trash2, Copy,
   CheckCircle2, Circle, AlertTriangle
 } from 'lucide-react';
 
@@ -96,7 +96,7 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
             {isOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#000000] bg-opacity-95" onClick={onClose} />
-                    <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-sm rounded-2xl p-6 bg-[#121212] text-white border border-white/10 shadow-2xl">
+                    <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-sm rounded-xl p-6 bg-[#121212] text-white border border-white/10 shadow-2xl">
                         <div className="flex flex-col items-center text-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2"><AlertTriangle size={32} /></div>
                             <h3 className="text-xl font-bold">Yakin hapus {count} catatan?</h3>
@@ -116,7 +116,7 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, count }) => {
     );
 };
 
-// --- NOTE CARD (ORGANIC BLOOM & HYBRID SCROLL) ---
+// --- NOTE CARD (FIXED SCROLL & SELECT) ---
 const NoteCard = React.memo(({ 
   note, isSelected, onClick, isAnySelected, theme, isDark, onUpdate, cardRef, availableTags, 
   isSelectionMode, isChecked, onToggleSelect, onDeleteSwipe, onClose 
@@ -135,23 +135,22 @@ const NoteCard = React.memo(({
   useEffect(() => { if (isSelected && (note.title !== noteState.title || note.content !== noteState.content)) { onUpdate(note.id, noteState); } }, [noteState, isSelected, note.id]);
   useEffect(() => { if (!isSelected) setNoteState({ title: note.title, content: note.content }); }, [note.title, note.content, isSelected]);
 
-  // --- THE HYBRID SCROLL LOGIC ---
+  // --- HYBRID SCROLL LOGIC (STABILIZED) ---
   const handleInput = (e) => {
     const target = e.target;
-    const maxHeight = window.innerHeight * 0.60; // BATAS SUCI: 60% Layar
+    const maxHeight = window.innerHeight * 0.60; // 60% Max Height
     
     target.style.height = 'auto'; 
     
     if (target.scrollHeight > maxHeight) {
-        // MENTOK -> SCROLL INTERNAL AKTIF
         target.style.height = `${maxHeight}px`;
         target.style.overflowY = 'auto';
     } else {
-        // BELUM MENTOK -> TUMBUH NATURAL
         target.style.height = `${target.scrollHeight}px`;
         target.style.overflowY = 'hidden';
     }
     setNoteState({ ...noteState, content: target.value });
+    // NO window.scrollBy HERE! Kills the drift.
   };
   
   React.useLayoutEffect(() => {
@@ -180,7 +179,7 @@ const NoteCard = React.memo(({
   return (
     <motion.div
       ref={cardRef}
-      layout // ANIMASI MEKAR/KUNCUP NYALA TERUS
+      layout // ANIMASI AKTIF
       
       drag={!isSelected && !isSelectionMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -204,13 +203,10 @@ const NoteCard = React.memo(({
           opacity: 1, 
           scale: isChecked ? 0.95 : (isAnySelected && !isSelected ? 0.98 : 1) 
       }}
-      // PHYSICS: BOUNCY (SPRING) - KEK AWAL AWAL
-      transition={{ 
-          layout: { type: "spring", stiffness: 300, damping: 30 },
-          scale: { duration: 0.2 }
-      }}
+      transition={{ layout: { type: "spring", stiffness: 300, damping: 30 } }}
       
-      className={`relative rounded-2xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[30vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
+      // ROUNDED XL (Lebih tajam/modern)
+      className={`relative rounded-xl overflow-hidden flex flex-col gap-3 transition-colors duration-300 ${isSelected ? 'col-span-2 min-h-[30vh] h-auto p-6 cursor-default' : 'col-span-1 h-fit p-5 cursor-pointer touch-pan-y'}`}
     >
       <AnimatePresence>
         {(isSelectionMode || isChecked) && (
@@ -223,7 +219,13 @@ const NoteCard = React.memo(({
       <div className="flex justify-between items-start gap-2 relative shrink-0">
         {isSelected ? (
             <div className="w-full flex justify-between items-start">
-                <input className="font-bold text-2xl bg-transparent outline-none w-full pb-2 mr-2" style={{ color: theme.text, borderBottom: `1px solid ${theme.border}` }} value={noteState.title} onChange={(e) => setNoteState({ ...noteState, title: e.target.value })} placeholder="Judul..." />
+                <input 
+                    className="font-bold text-2xl bg-transparent outline-none w-full pb-2 mr-2 select-text" // SELECT-TEXT ENABLED
+                    style={{ color: theme.text, borderBottom: `1px solid ${theme.border}` }} 
+                    value={noteState.title} 
+                    onChange={(e) => setNoteState({ ...noteState, title: e.target.value })} 
+                    placeholder="Judul..." 
+                />
                 <button 
                   className={`p-2 rounded-full transition-colors flex-shrink-0 relative z-50 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`} 
                   onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -240,8 +242,7 @@ const NoteCard = React.memo(({
         {isSelected ? (
             <textarea 
                 ref={textAreaRef} 
-                className="w-full bg-transparent outline-none resize-none text-base leading-relaxed p-1" 
-                // Default min-height
+                className="w-full bg-transparent outline-none resize-none text-base leading-relaxed p-1 select-text" // SELECT-TEXT ENABLED
                 style={{ fontFamily: 'sans-serif', minHeight: '200px', color: theme.text }} 
                 value={noteState.content} 
                 onChange={handleInput} 
@@ -294,7 +295,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
     const fileInputRef = useRef(null);
     const handleAddTag = () => { if (newTag && !allTags.includes(newTag)) { setAllTags([...allTags, newTag]); setNewTag(''); } };
     const handleDeleteTag = (tagToDelete) => { setAllTags(allTags.filter(t => t !== tagToDelete)); };
-    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '26.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v26-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
+    const handleExport = () => { const blob = new Blob([JSON.stringify({ notes, allTags, version: '27.0' }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dinduy-v27-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
     const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.notes) { setNotes(data.notes); if (data.allTags) setAllTags(data.allTags); alert('Restored!'); } } catch (err) { alert('Error.'); } }; reader.readAsText(file); };
   
     return (
@@ -312,7 +313,7 @@ const SettingsSheet = ({ isOpen, onClose, theme, setThemeKey, currentThemeKey, i
                 <div><label className="text-xs font-bold uppercase tracking-wider opacity-50 mb-4 block">Kelola Label</label><div className="flex gap-2 mb-4"><input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Buat label baru..." className={`flex-1 px-4 py-3 rounded-xl outline-none ${isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'}`} /><button onClick={handleAddTag} disabled={!newTag} className="p-3 rounded-xl text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}><Plus /></button></div><div className="flex flex-wrap gap-2">{allTags.map(tag => (<div key={tag} className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><span className="text-sm font-medium">{tag}</span><button onClick={() => handleDeleteTag(tag)} className={`p-1 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={14} className="opacity-50" /></button></div>))}</div></div>
                 <div className={`flex items-center justify-between p-4 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}><div className="flex items-center gap-3">{isDark ? <Moon size={20} /> : <Sun size={20} />}<span className="font-medium">AMOLED Mode</span></div><button onClick={toggleDark} className={`w-14 h-8 rounded-full p-1 transition-colors ${isDark ? 'bg-white/20' : 'bg-gray-300'}`}><motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: isDark ? 24 : 0 }} /></button></div>
               </div>
-              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Organic-v26</div>
+              <div className="mt-20 text-center opacity-30 text-xs font-mono">Build: Dinduy-Copycat-v27</div>
             </motion.div>
           </>
         )}
@@ -376,7 +377,6 @@ export default function App() {
       else { setSelectedId(null); setIsSettingsOpen(false); }
   };
 
-  // --- FIXED SCROLL LOGIC: SCROLL TO HEADER WITH OFFSET ---
   useEffect(() => {
     if (selectedId && lastScrolledId.current !== selectedId) {
       setTimeout(() => {
@@ -422,6 +422,21 @@ export default function App() {
       }
   };
 
+  // --- DUPLICATE LOGIC ---
+  const handleDuplicate = () => {
+      const selectedNotes = notes.filter(n => selectedIds.includes(n.id));
+      const newDuplicates = selectedNotes.map(n => ({
+          ...n,
+          id: Date.now() + Math.random(), // Unique ID
+          title: `${n.title} (Copy)`,
+          date: 'Just now'
+      }));
+      setNotes(prev => [...newDuplicates, ...prev]);
+      setIsSelectionMode(false);
+      setSelectedIds([]);
+      if (window.location.hash === '#select') window.history.back();
+  };
+
   const performDelete = (ids) => {
       setNotes(prev => prev.filter(n => !ids.includes(n.id)));
       if (deleteModal.isOpen) goBack(); 
@@ -442,14 +457,18 @@ export default function App() {
         <div className="flex gap-2">
             <AnimatePresence>
                 {isSelectionMode && (
-                    <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} onClick={() => openDeleteModal(selectedIds)} className="p-3 rounded-full bg-red-500 text-white shadow-lg"><Trash2 size={24} /></motion.button>
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex gap-2">
+                        {/* DUPLICATE BUTTON */}
+                        <button onClick={handleDuplicate} className="p-3 rounded-full bg-blue-500 text-white shadow-lg"><Copy size={24} /></button>
+                        <button onClick={() => openDeleteModal(selectedIds)} className="p-3 rounded-full bg-red-500 text-white shadow-lg"><Trash2 size={24} /></button>
+                    </motion.div>
                 )}
             </AnimatePresence>
             <button onClick={openSettings} className={`p-3 rounded-full transition-transform active:scale-95 ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}><Settings size={24} /></button>
         </div>
       </motion.header>
 
-      {!selectedId && (<div className={`px-6 mb-6 overflow-x-auto no-scrollbar pb-2 transition-opacity duration-300`}><div className="flex gap-2">{['All', ...allTags].map(tag => (<button key={tag} onClick={() => setActiveTag(tag)} className={`px-5 py-2 rounded-2xl text-sm font-bold whitespace-nowrap transition-colors border`} style={{ backgroundColor: activeTag === tag ? theme.primary : 'transparent', color: activeTag === tag ? (isDark ? '#000' : '#FFF') : theme.text, borderColor: activeTag === tag ? 'transparent' : theme.border }}>{tag}</button>))}</div></div>)}
+      {!selectedId && (<div className={`px-6 mb-6 overflow-x-auto no-scrollbar pb-2 transition-opacity duration-300`}><div className="flex gap-2">{['All', ...allTags].map(tag => (<button key={tag} onClick={() => setActiveTag(tag)} className={`px-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors border`} style={{ backgroundColor: activeTag === tag ? theme.primary : 'transparent', color: activeTag === tag ? (isDark ? '#000' : '#FFF') : theme.text, borderColor: activeTag === tag ? 'transparent' : theme.border }}>{tag}</button>))}</div></div>)}
 
       <main className="px-4 max-w-2xl mx-auto">
         <LayoutGroup>
